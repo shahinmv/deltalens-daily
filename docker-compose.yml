@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  daily-run:
+    build: .
+    container_name: daily-run-app
+    volumes:
+      - ./startup_logs:/app/startup_logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=UTC
+    restart: unless-stopped
+    # Uncomment the following lines if you want to run this on a schedule
+    # You can use cron or a scheduler service instead
+    # command: >
+    #   sh -c "while true; do
+    #     ./run_daily_tasks.sh &&
+    #     echo 'Waiting 24 hours for next run...' &&
+    #     sleep 86400;
+    #   done"
