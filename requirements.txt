@@ -10,6 +10,5 @@ python-binance==1.0.17
 requests==2.31.0
 psycopg2-binary==2.9.7
 sqlalchemy==2.0.19
-sqlite3
 tqdm==4.65.0
 vaderSentiment==3.3.2
