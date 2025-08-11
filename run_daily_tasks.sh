@@ -66,6 +66,13 @@ else
     exit 1
 fi
 
+# 5. Check trades status (final step)
+if run_script "check_trades_status.py" "Trade status checking"; then
+    log "✓ Trade status checking completed"
+else
+    log "✗ Trade status checking failed - continuing as this is not critical"
+fi
+
 log "=========================================="
 log "Daily tasks completed successfully!"
 log "=========================================="
