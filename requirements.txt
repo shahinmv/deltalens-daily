@@ -12,3 +12,4 @@ psycopg2-binary==2.9.7
 sqlalchemy==2.0.19
 tqdm==4.65.0
 vaderSentiment==3.3.2
+nltk==3.8.1
