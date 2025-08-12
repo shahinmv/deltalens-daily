@@ -118,7 +118,7 @@ class TradeStatusChecker:
                        its.entry_price, its.target_price, its.stop_loss, 
                        its.expires_at, its.status as signal_status,
                        ts.status as trade_status, ts.id as trade_status_id
-                FROM benchmark_trading_signals its
+                FROM iterative_trading_signals its
                 LEFT JOIN trade_status ts ON its.id = ts.signal_id
                 WHERE (ts.status IS NULL 
                        OR ts.status IN ('ACTIVE', 'ACTIVE_PENDING_DATA'))
@@ -208,26 +208,44 @@ class TradeStatusChecker:
         exit_date = None
         exit_price = None
         days_active = 0
+        same_day_hit = False
+        
+        logger.info(f"Analyzing signal {signal.get('id', 'unknown')} from {prediction_date}, type: {signal_type}")
+        logger.info(f"Entry: ${entry_price}, Target: ${target_price}, Stop Loss: ${stop_loss}")
         
         for date, row in ohlcv_data.iterrows():
             current_date = date.date()
             days_from_prediction = (current_date - prediction_date).days
             
+            # Skip days before prediction date, but include the prediction date itself (day 0)
             if days_from_prediction < 0:
                 continue
                 
             days_active = days_from_prediction + 1
+            is_same_day = days_from_prediction == 0
+            
+            logger.info(f"Checking {current_date} (day {days_from_prediction}): High=${row['high']}, Low=${row['low']}, Close=${row['close']}")
             
             if signal_type == 'LONG':
                 if row['high'] >= target_price:
                     hit_target = True
                     exit_date = current_date.strftime('%Y-%m-%d')
                     exit_price = target_price
+                    same_day_hit = is_same_day
+                    if is_same_day:
+                        logger.info(f"🎯 SAME DAY TARGET HIT on {exit_date}! Trade generated on {prediction_date} hit target on same day. High ${row['high']} >= Target ${target_price}")
+                    else:
+                        logger.info(f"TARGET HIT on {exit_date}! High ${row['high']} >= Target ${target_price}")
                     break
                 elif row['low'] <= stop_loss:
                     hit_stop_loss = True
                     exit_date = current_date.strftime('%Y-%m-%d')
                     exit_price = stop_loss
+                    same_day_hit = is_same_day
+                    if is_same_day:
+                        logger.info(f"⚠️ SAME DAY STOP LOSS HIT on {exit_date}! Trade generated on {prediction_date} hit stop loss on same day. Low ${row['low']} <= Stop Loss ${stop_loss}")
+                    else:
+                        logger.info(f"STOP LOSS HIT on {exit_date}! Low ${row['low']} <= Stop Loss ${stop_loss}")
                     break
                     
             elif signal_type == 'SHORT':
@@ -235,11 +253,21 @@ class TradeStatusChecker:
                     hit_target = True
                     exit_date = current_date.strftime('%Y-%m-%d')
                     exit_price = target_price
+                    same_day_hit = is_same_day
+                    if is_same_day:
+                        logger.info(f"🎯 SAME DAY TARGET HIT on {exit_date}! Trade generated on {prediction_date} hit target on same day. Low ${row['low']} <= Target ${target_price}")
+                    else:
+                        logger.info(f"TARGET HIT on {exit_date}! Low ${row['low']} <= Target ${target_price}")
                     break
                 elif row['high'] >= stop_loss:
                     hit_stop_loss = True
                     exit_date = current_date.strftime('%Y-%m-%d')
                     exit_price = stop_loss
+                    same_day_hit = is_same_day
+                    if is_same_day:
+                        logger.info(f"⚠️ SAME DAY STOP LOSS HIT on {exit_date}! Trade generated on {prediction_date} hit stop loss on same day. High ${row['high']} >= Stop Loss ${stop_loss}")
+                    else:
+                        logger.info(f"STOP LOSS HIT on {exit_date}! High ${row['high']} >= Stop Loss ${stop_loss}")
                     break
         
         # If no target/stop hit, use last available price
@@ -266,11 +294,19 @@ class TradeStatusChecker:
             if hit_target:
                 status = 'TARGET_HIT'
                 exit_reason = 'Target reached'
-                exit_timestamp = datetime.now().isoformat()
+                # Use the actual exit date if available, otherwise current time
+                if exit_date:
+                    exit_timestamp = f"{exit_date}T23:59:59"
+                else:
+                    exit_timestamp = datetime.now().isoformat()
             elif hit_stop_loss:
                 status = 'STOP_LOSS_HIT'
                 exit_reason = 'Stop loss triggered'
-                exit_timestamp = datetime.now().isoformat()
+                # Use the actual exit date if available, otherwise current time
+                if exit_date:
+                    exit_timestamp = f"{exit_date}T23:59:59"
+                else:
+                    exit_timestamp = datetime.now().isoformat()
             elif is_expired:
                 status = 'EXPIRED'
                 exit_reason = 'Signal expired'
