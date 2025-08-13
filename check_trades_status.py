@@ -316,7 +316,7 @@ class TradeStatusChecker:
                 exit_reason = 'Awaiting OHLCV data'
                 exit_timestamp = None
             else:
-                status = 'ACTIVE'
+                status = 'ACTIVE_PENDING_DATA'
                 exit_reason = 'Trade in progress'
                 exit_timestamp = None
             
