@@ -1,9 +1,14 @@
+import os
 import requests
 import psycopg2
 import random
 import time
 from datetime import datetime, date
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Cointelegraph API Configuration
 API_URL = "https://conpletus.cointelegraph.com/v1/"
@@ -31,7 +36,7 @@ QUERY = '''query TagPageQuery($short: String, $slug: String!, $order: String, $o
   }
 }'''
 
-DB_URL = 'postgresql://postgres:AdkiHmmAoHPWhHzphxCwbqcDRvfmRnjJ@ballast.proxy.rlwy.net:49094/railway'
+DB_URL = os.getenv('POSTGRES_URL', 'postgresql://postgres:password@localhost:5432/database')
 CUTOFF_DATE = datetime(2020, 5, 6).date()
 
 class CointelegraphNewsScraper:

@@ -10,6 +10,10 @@ import sys
 import requests
 from typing import Dict, Optional, Tuple
 from dataclasses import dataclass
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from ml_model import ImprovedBitcoinPredictor
 
@@ -626,10 +630,12 @@ def apply_dynamic_stop_loss(predicted_return, actual_return, position_type, dyna
 
 class IterativeTradingSystem:
     def __init__(self, 
-                 postgres_url: str = "postgresql://postgres:AdkiHmmAoHPWhHzphxCwbqcDRvfmRnjJ@ballast.proxy.rlwy.net:49094/railway",
+                 postgres_url: str = None,
                  model_path: str = "trained_model.pkl",
                  config_path: str = "trading_config.json"):
         
+        if postgres_url is None:
+            postgres_url = os.getenv('POSTGRES_URL', 'postgresql://postgres:password@localhost:5432/database')
         self.postgres_url = postgres_url
         self.model_path = model_path
         self.config_path = config_path

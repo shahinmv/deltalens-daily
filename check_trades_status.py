@@ -1,8 +1,13 @@
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(
@@ -16,7 +21,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TradeStatusChecker:
-    def __init__(self, db_connection_string='postgresql://postgres:AdkiHmmAoHPWhHzphxCwbqcDRvfmRnjJ@ballast.proxy.rlwy.net:49094/railway'):
+    def __init__(self, db_connection_string=None):
+        if db_connection_string is None:
+            db_connection_string = os.getenv('POSTGRES_URL', 'postgresql://postgres:password@localhost:5432/database')
         self.db_connection_string = db_connection_string
         self.create_trade_status_table()
     

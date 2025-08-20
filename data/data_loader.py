@@ -1,10 +1,15 @@
+import os
 import psycopg2
 import pandas as pd
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # PostgreSQL connection details
-POSTGRES_URL = "postgresql://postgres:AdkiHmmAoHPWhHzphxCwbqcDRvfmRnjJ@ballast.proxy.rlwy.net:49094/railway"
+POSTGRES_URL = os.getenv('POSTGRES_URL', 'postgresql://postgres:password@localhost:5432/database')
 
 # Table names
 BTC_DAILY = 'btc_daily_ohlcv'

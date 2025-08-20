@@ -6,6 +6,10 @@ import logging
 from requests.exceptions import RequestException
 from psycopg2 import Error as PostgreSQLError
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # PostgreSQL connection string
 POSTGRES_URL = os.getenv('POSTGRES_URL', 'postgresql://postgres:AdkiHmmAoHPWhHzphxCwbqcDRvfmRnjJ@ballast.proxy.rlwy.net:49094/railway')
